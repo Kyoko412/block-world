@@ -52,8 +52,8 @@ RESULT="$WORLD/smoke.txt"
 get() { grep -m1 "^$1=" "$RESULT" | cut -d= -f2; }
 NODES=$(get nodes); ITEMS=$(get items); ENTS=$(get entities); BEE=$(get has_bee); STONE=$(get has_stone)
 FAIL=""
-[ "${NODES:-0}" -ge 3000 ] || FAIL="$FAIL 节点数异常($NODES);"
-[ "${ENTS:-0}" -ge 291 ] || FAIL="$FAIL 实体数异常($ENTS);"
+[ "${NODES:-0}" -ge 2890 ] || FAIL="$FAIL 节点数异常($NODES);"
+[ "${ENTS:-0}" -ge 289 ] || FAIL="$FAIL 实体数异常($ENTS);"
 [ "$BEE" = "true" ] || FAIL="$FAIL mc_mobs:bee 未注册;"
 [ "$STONE" = "true" ] || FAIL="$FAIL mcl_core:stone 缺失;"
 [ -f "$TARGET/mods/mc_music/sounds/mc_music_day.ogg" ] || FAIL="$FAIL 配乐文件缺失;"

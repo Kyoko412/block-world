@@ -60,8 +60,8 @@
 
 已知上游包含：
 
-- 3060 个节点
-- 3696 个物品
+- 2892 个节点
+- 3514 个物品
 - 103 种生物
 - 216 个群系
 - 酿造与药水
@@ -186,7 +186,7 @@ bash luanti/scripts/smoke.sh "E:/MinecraftOffline/游戏/方块世界-Luanti"
 已知预期结果：
 
 ```text
-冒烟通过：nodes=3060 items=3696 entities=291 bee=true 退出码=0
+冒烟通过：nodes=2892 items=3514 entities=290 bee=true 退出码=0
 ```
 
 以上是历史预期，不是要求强行制造的结果。

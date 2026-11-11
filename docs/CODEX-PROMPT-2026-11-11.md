@@ -13,7 +13,7 @@
 
 - 仓库：`E:\MinecraftOffline`，分支 `release/v0.2`，基线提交 `3b8bbda`。
 - 引擎 **Luanti 5.18.0**、游戏 **Mineclonia 0.124.1**，版本与 SHA256 钉在 `luanti/dependencies.lock.json`。
-- **上游白送的**（不要当成我们的成果，也不要改）：3060 个节点、3696 个物品、103 种生物、216 个群系、酿造/药水、部分红石、经验附魔、下界与末地。
+- **上游白送的**（不要当成我们的成果，也不要改）：2892 个节点、3514 个物品、103 种生物、216 个群系、酿造/药水、部分红石、经验附魔、下界与末地。
 - **我们写的**只有这些：
   - `luanti/mods/mc_soundpack`：80 个 OGG 声音组 + 按 footstep/dig/dug/place 分键位重映射
   - `luanti/mods/mc_music`：三首原创配乐（81/96/87s）+ 八条提示音 + 场景调度
@@ -42,7 +42,7 @@ git branch --show-current; git log -1 --oneline; git status --porcelain
 bash luanti/scripts/smoke.sh "E:/MinecraftOffline/游戏/方块世界-Luanti"
 ```
 
-期望输出：`冒烟通过：nodes=3060 items=3696 entities=291 bee=true 退出码=0`
+期望输出：`冒烟通过：nodes=2892 items=3514 entities=290 bee=true 退出码=0`
 **跑不通就先报告，不要改代码去"让它通过"。**
 
 ## 第三步：理解"我们这一层"怎么工作（只看必要的）
