@@ -1,11 +1,12 @@
 # 方块世界（Block World CN）
 
-一个中文离线单机方块游戏。当前仓库里同时存在两个版本：
+一个中文离线单机方块游戏：
 
 | 版本 | 位置 | 状态 |
 | --- | --- | --- |
 | **新版（Luanti + Mineclonia）** | `luanti/` + `游戏/方块世界-Luanti/` | 开发中：底座已通，内容来自 Mineclonia，体验层在补 |
-| **经典版（Electron 自研）** | `app/` + `游戏/方块世界/` | 1.1.0，五包音效与三首配乐已验收，等新版稳定后归档 |
+
+> 旧的 Electron 版本（1.1.0，含源码与历史取证）已移出本仓库，归档在 `E:\MinecraftOffline Demo`，只作归档、不再开发。
 
 新版不是重写引擎：**Luanti 提供引擎、Mineclonia 提供内容，我们只做体验层**（中文、声音、光影、生物补全、世界感、目标感）。
 
@@ -13,7 +14,6 @@
 
 ```
 启动游戏.bat        # 新版（Luanti）
-启动经典版.bat      # 经典版（Electron 1.1.0）
 ```
 
 新版进入后选世界 `mcsound`（已启用音效包 / 配乐 / 蜜蜂原型）。
@@ -30,7 +30,6 @@ luanti/                 新版的"我们这一层"
 ├─ dependencies.lock.json  Luanti 5.18.0 + Mineclonia 0.124.1（含 SHA256）
 └─ overrides.json       src → 运行时目录的显式映射
 
-app/                    经典版 Electron 源码（渲染器、音频、测试）
 docs/current/           当前计划与报告（总计划、夜班报告、缺口对照、迁移评估…）
 docs/history/           历史文档（旧任务书、验收报告、阶段计划）
 游戏/                   本地产物（不入库）：两个可运行版本

@@ -9,8 +9,6 @@ downloads/
 *.log
 
 # ---------- 依赖 ----------
-app/node_modules/
-app/saves/
 saves/
 
 # ---------- 本机工具/会话数据 ----------
@@ -19,9 +17,6 @@ dsh-auto-continue/
 .scratch/
 
 # ---------- 取证/机位脚本的临时存档 ----------
-app/tests/.repro-saves/
-app/tests/.visual-saves/
-app/tests/.e2e-saves/settings.json
 
 # ---------- 系统 ----------
 Thumbs.db
@@ -30,3 +25,5 @@ desktop.ini
 
 # 上游依赖压缩包（首次构建用 fetch-deps 下载，不入库）
 luanti/downloads/
+
+# 旧版已移出仓库（归档在 E:MinecraftOffline Demo）

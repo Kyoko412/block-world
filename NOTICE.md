@@ -23,7 +23,6 @@
 | `mc_music`：三首原创配乐与八条提示音 | CC0-1.0（本项目原创编曲） | `luanti/mods/mc_music` |
 | `mc_mobs`：蜜蜂原型（贴图与三条音效） | CC0-1.0（本项目生成） | `luanti/mods/mc_mobs` |
 | HUD 几何材质包（源自 Block World CN） | CC0-1.0 | `luanti/assets` |
-| 经典版 Electron 源码与音频（1.1.0） | GPL-3.0-or-later；音频素材逐条登记 | `app/` |
 
 ## 修改说明（LGPL / GPL 要求）
 
