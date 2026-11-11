@@ -25,6 +25,13 @@ bash luanti/scripts/audit.sh "E:/MinecraftOffline/游戏/方块世界-Luanti"
 报告首部 `verdict=PASS` 的条件：`recipes_bad == 0` 且 `node_no_sounds == 0` 且 `entity_no_texture == 0`。
 其余计数是"待分诊样本"，不等于缺陷。
 
+## 已覆盖（v2）
+
+- 钓鱼掉落表（4 张表，34 条）
+- 村民交易（11 职业，592 条；先调用 `mcl_enchanting.initialize()` 避免附魔变体误判）
+- 附魔表（39 条，含不兼容项引用检查）
+- 配方实算（1375 条通过，189 条含 group: 跳过）
+
 ## 还没做（下一步）
 
 - 过滤内部节点（`light_*`、`*_top`、`*_wall`、`ignore`）后再统计

@@ -56,6 +56,11 @@ local function is_empty(s)
 end
 
 minetest.register_on_mods_loaded(function()
+	-- 附魔变体（xxx_enchanted）由 mcl_enchanting.initialize() 动态注册；
+	-- 不先调用它，交易表里的附魔物品会被误判为「未注册」。
+	if mcl_enchanting and mcl_enchanting.initialize then
+		pcall(mcl_enchanting.initialize)
+	end
 	local out = {}
 	local function line(s) out[#out + 1] = s end
 
@@ -73,10 +78,11 @@ minetest.register_on_mods_loaded(function()
 
 	for name, def in pairs(items) do
 		if name ~= "" and def then
-			if is_empty(def.description) then push(no_desc, name, 200) end
+			local hidden = def.groups and def.groups.not_in_creative_inventory == 1
+			if is_empty(def.description) and not hidden then push(no_desc, name, 200) end
 
 			if def.type == "node" then
-				if is_empty(def.tiles) then push(no_image, name, 200) end
+				if is_empty(def.tiles) and not hidden then push(no_image, name, 200) end
 				if not def.liquidtype and def.drawtype ~= "air" and not def.sounds then
 					push(node_no_sounds, name, 200)
 				end
@@ -94,7 +100,8 @@ minetest.register_on_mods_loaded(function()
 				end
 			end
 
-			if def.groups and def.groups.food and def._mcl_saturation == nil then
+			if def.groups and def.groups.food and def._mcl_saturation == nil
+				and (name:sub(1, 12) == "mcl_farming:" or name:sub(1, 9) == "mcl_food:") then
 				push(food_no_sat, name, 200)
 			end
 			if def.groups and def.groups.food then foods = foods + 1 end
@@ -157,10 +164,57 @@ minetest.register_on_mods_loaded(function()
 		end
 	end
 
+	-- ---------- L2.5 掉落表与数据表 ----------
+	local fish_bad, trade_bad, ench_bad = {}, {}, {}
+	local fish_entries, trade_entries, ench_entries = 0, 0, 0
+
+	for _, tbl in ipairs({ "loot_fish", "loot_junk", "loot_junk_jungle", "loot_treasure" }) do
+		for _, e in ipairs((mcl_fishing and mcl_fishing[tbl]) or {}) do
+			fish_entries = fish_entries + 1
+			if e.itemstring then
+				local resolved = ItemStack(e.itemstring):get_name()
+				if not items[resolved] then push(fish_bad, tbl .. ":" .. e.itemstring, 50) end
+			end
+		end
+	end
+
+	for prof, tiers in pairs((mobs_mc and mobs_mc.villager_trades) or {}) do
+		for _, tier in pairs(tiers) do
+			for _, entry in ipairs(tier) do
+				for i = 1, 2 do
+					local slot = entry[i]
+					if type(slot) == "table" and type(slot[1]) == "string" then
+						trade_entries = trade_entries + 1
+						local resolved = ItemStack(slot[1]):get_name()
+						if not items[resolved] then push(trade_bad, prof .. ":" .. slot[1], 100) end
+						if slot[2] and slot[3] and slot[2] > slot[3] then
+							push(trade_bad, prof .. ":" .. tostring(slot[1]) .. " 数量区间反了", 100)
+						end
+					end
+				end
+			end
+		end
+	end
+
+	for name, def in pairs((mcl_enchanting and mcl_enchanting.enchantments) or {}) do
+		ench_entries = ench_entries + 1
+		if not def.name or not def.max_level or def.max_level < 1 then
+			push(ench_bad, name .. " 缺 name/max_level", 50)
+		end
+		for inc in pairs(def.incompatible or {}) do
+			if not (mcl_enchanting.enchantments or {})[inc] then
+				push(ench_bad, name .. " 不兼容项不存在:" .. tostring(inc), 50)
+			end
+		end
+	end
+
+	line("fishing_entries=" .. fish_entries)
+	line("trade_entries=" .. trade_entries)
+	line("enchant_entries=" .. ench_entries)
 	line("recipes_ok=" .. recipe_ok)
 	line("recipes_group_skipped=" .. group_skipped)
 	line("recipes_bad=" .. #recipe_bad)
-	local verdict = (#recipe_bad == 0 and #node_no_sounds == 0 and #ent_no_tex == 0) and "PASS" or "CHECK"
+	local verdict = (#recipe_bad == 0 and #node_no_sounds == 0 and #ent_no_tex == 0 and #fish_bad == 0 and #ench_bad == 0) and "PASS" or "CHECK"
 	line("# verdict=" .. verdict)
 	line("# 待分诊样本含内部节点（light_*、*_top、*_wall、ignore）与药水/工具类，不等于缺陷")
 
@@ -176,6 +230,9 @@ minetest.register_on_mods_loaded(function()
 	section("food_no_saturation", food_no_sat)
 	section("entity_no_texture", ent_no_tex)
 	section("recipe_bad", recipe_bad)
+	section("fishing_bad", fish_bad)
+	section("trade_bad", trade_bad)
+	section("enchant_bad", ench_bad)
 
 	local f = io.open(minetest.get_worldpath() .. "/audit.txt", "w")
 	f:write(table.concat(out, "\n") .. "\n")

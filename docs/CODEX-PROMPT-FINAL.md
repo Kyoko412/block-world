@@ -192,7 +192,7 @@ bash luanti/scripts/smoke.sh "E:/MinecraftOffline/游戏/方块世界-Luanti"
 以上是历史预期，不是要求强行制造的结果。
 
 若环境没有 `bash`：明确报告"环境缺少 bash，冒烟未执行"，并给出手动等价步骤
-（起 `bin/luanti.exe --server --world worlds/_smoke`，读 `worlds/_smoke/smoke.txt` 断言）。
+（已有冒烟探针时，起 `bin/luanti.exe --server --world .smoke`，读 `.smoke/smoke.txt` 断言）。
 
 若失败：
 
