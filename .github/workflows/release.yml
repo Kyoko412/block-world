@@ -1,0 +1,61 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 读取依赖锁并下载校验
+        run: |
+          set -euo pipefail
+          mkdir -p downloads
+          jq -r '.artifacts[] | [.url, .file, .sha256] | @tsv' luanti/dependencies.lock.json |
+          while IFS=$'\t' read -r url file sha; do
+            echo "下载 $file"
+            curl -fsSL "$url" -o "downloads/$file"
+            echo "$sha  downloads/$file" | sha256sum -c -
+          done
+
+      - name: 组装便携包
+        run: |
+          set -euo pipefail
+          mkdir -p pkg tmp
+          unzip -q downloads/luanti-*-win64.zip -d tmp/engine
+          cp -a tmp/engine/*/. pkg/
+          unzip -q downloads/mineclonia-*.zip -d tmp/game
+          mkdir -p pkg/games
+          cp -a tmp/game/* pkg/games/mineclonia
+          cp luanti/src/default.conf pkg/minetest.conf
+          mkdir -p pkg/src pkg/textures/local_classic_ui
+          cp luanti/src/menu.lua pkg/src/
+          cp -a luanti/mods pkg/mods
+          cp -a luanti/assets/. pkg/textures/local_classic_ui/
+          cp "luanti/package/一键启动.cmd" pkg/
+          cp "luanti/package/说明.md" pkg/
+          cp LICENSE NOTICE.md pkg/
+          mkdir -p "pkg/worlds/方块世界"
+          cp luanti/package/world.mt "pkg/worlds/方块世界/world.mt"
+
+      - name: 打包
+        run: |
+          set -euo pipefail
+          cd pkg
+          zip -qr "../方块世界-${GITHUB_REF_NAME}.zip" .
+          cd ..
+          ls -lh 方块世界-*.zip
+
+      - name: 发布到 Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: 方块世界-*.zip
+          body_path: .github/release-notes.md
+          fail_on_unmatched_files: true
