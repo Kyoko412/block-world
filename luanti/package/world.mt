@@ -1,5 +1,5 @@
 gameid = mineclonia
-world_name = 方块世界
+world_name = blockworld
 backend = sqlite3
 player_backend = sqlite3
 auth_backend = sqlite3

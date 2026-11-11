@@ -28,31 +28,31 @@ jobs:
       - name: 组装便携包
         run: |
           set -euo pipefail
-          mkdir -p pkg tmp
+          mkdir -p "pkg/block-world-${GITHUB_REF_NAME}" tmp
+          PKG="pkg/block-world-${GITHUB_REF_NAME}"
           unzip -q downloads/luanti-*-win64.zip -d tmp/engine
-          cp -a tmp/engine/*/. pkg/
-          test -f pkg/bin/luanti.exe
+          cp -a tmp/engine/*/. "$PKG"/
+          test -f "$PKG/bin/luanti.exe"
           unzip -q downloads/mineclonia-*.zip -d tmp/game
-          mkdir -p pkg/games
-          mkdir -p pkg/games/mineclonia
-          cp -a tmp/game/*/. pkg/games/mineclonia/
-          test -f pkg/games/mineclonia/game.conf
-          cp luanti/src/default.conf pkg/minetest.conf
-          mkdir -p pkg/src pkg/textures/local_classic_ui
-          cp luanti/src/menu.lua pkg/src/
-          cp -a luanti/mods pkg/mods
-          cp -a luanti/assets/. pkg/textures/local_classic_ui/
-          cp "luanti/package/一键启动.cmd" pkg/
-          cp "luanti/package/说明.md" pkg/
-          cp LICENSE NOTICE.md pkg/
-          mkdir -p "pkg/worlds/方块世界"
-          cp luanti/package/world.mt "pkg/worlds/方块世界/world.mt"
+          mkdir -p "$PKG/games/mineclonia"
+          cp -a tmp/game/*/. "$PKG/games/mineclonia/"
+          test -f "$PKG/games/mineclonia/game.conf"
+          cp luanti/src/default.conf "$PKG/minetest.conf"
+          mkdir -p "$PKG/src" "$PKG/textures/local_classic_ui"
+          cp luanti/src/menu.lua "$PKG/src/"
+          cp -a luanti/mods "$PKG/mods"
+          cp -a luanti/assets/. "$PKG/textures/local_classic_ui/"
+          cp luanti/package/Start.cmd "$PKG/"
+          cp luanti/package/README-zh.md "$PKG/"
+          cp LICENSE NOTICE.md "$PKG/"
+          mkdir -p "$PKG/worlds/blockworld"
+          cp luanti/package/world.mt "$PKG/worlds/blockworld/world.mt"
 
       - name: 打包
         run: |
           set -euo pipefail
           cd pkg
-          zip -qr "../block-world-${GITHUB_REF_NAME}.zip" .
+          zip -qr "../block-world-${GITHUB_REF_NAME}.zip" "block-world-${GITHUB_REF_NAME}"
           cd ..
           ls -lh block-world-*.zip
 
