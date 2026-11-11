@@ -27,3 +27,6 @@ desktop.ini
 luanti/downloads/
 
 # 旧版已移出仓库（归档在 E:MinecraftOffline Demo）
+
+# 本地发布包组装目录
+.build-release/

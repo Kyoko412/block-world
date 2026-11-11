@@ -15,10 +15,10 @@
     {
       "file": "mineclonia-0.124.1.zip",
       "url": "https://codeberg.org/mineclonia/mineclonia/archive/refs/tags/0.124.1.zip",
-      "sha256": "96cb7ba592d760719797a274feed4bf0426f97ff4cfc015130c93b6e7c36e521",
-      "bytes": 29597823,
+      "sha256": "e25bcf448ec5431c662a31271ec56f53828199e514edfdc635a4c346e4e7b1db",
+      "bytes": 30408261,
       "role": "game-source",
-      "top": "mineclonia"
+      "top": "mineclonia-0.124.1"
     }
   ],
   "note": "下载后必须逐项校验 SHA256；校验不一致直接失败，不使用该包。"

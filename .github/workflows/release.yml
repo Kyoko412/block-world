@@ -31,9 +31,12 @@ jobs:
           mkdir -p pkg tmp
           unzip -q downloads/luanti-*-win64.zip -d tmp/engine
           cp -a tmp/engine/*/. pkg/
+          test -f pkg/bin/luanti.exe
           unzip -q downloads/mineclonia-*.zip -d tmp/game
           mkdir -p pkg/games
-          cp -a tmp/game/* pkg/games/mineclonia
+          mkdir -p pkg/games/mineclonia
+          cp -a tmp/game/*/. pkg/games/mineclonia/
+          test -f pkg/games/mineclonia/game.conf
           cp luanti/src/default.conf pkg/minetest.conf
           mkdir -p pkg/src pkg/textures/local_classic_ui
           cp luanti/src/menu.lua pkg/src/
