@@ -52,13 +52,14 @@ jobs:
         run: |
           set -euo pipefail
           cd pkg
-          zip -qr "../方块世界-${GITHUB_REF_NAME}.zip" .
+          zip -qr "../block-world-${GITHUB_REF_NAME}.zip" .
           cd ..
-          ls -lh 方块世界-*.zip
+          ls -lh block-world-*.zip
 
       - name: 发布到 Releases
         uses: softprops/action-gh-release@v2
         with:
-          files: 方块世界-*.zip
+          name: 方块世界 ${{ github.ref_name }}（Luanti 便携包）
+          files: block-world-*.zip
           body_path: .github/release-notes.md
           fail_on_unmatched_files: true
