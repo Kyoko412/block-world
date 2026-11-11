@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; worker-src 'self' blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>方块世界 · 中文体素沙盒</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="game-root">
+  <canvas id="game-canvas"></canvas>
+
+  <!-- 全屏叠加效果 -->
+  <div id="vignette" class="fx"></div>
+  <div id="water-overlay" class="fx"></div>
+  <div id="damage-overlay" class="fx"></div>
+  <div id="block-overlay" class="fx"></div>
+  <div id="lightning-flash" class="fx"></div>
+
+  <!-- HUD -->
+  <div id="hud" class="hidden">
+    <div id="crosshair"><span class="ch-h"></span><span class="ch-v"></span></div>
+    <div id="attack-charge" class="hidden"><i></i></div>
+    <div id="hit-marker"><i></i><i></i><i></i><i></i></div>
+    <div id="bow-charge" class="hidden"><i></i></div>
+    <div id="compass-hud" class="hidden">
+      <div id="compass-ring"><i id="compass-needle"></i><span class="compass-n">N</span></div>
+      <div id="compass-dist"></div>
+    </div>
+    <div id="held-name"></div>
+    <div id="guardian-bar" class="hidden">
+      <div class="gb-name">地牢守卫 <span id="gb-phase"></span></div>
+      <div class="gb-track"><i id="gb-fill"></i></div>
+    </div>
+    <div id="status-bars">
+      <div id="armor-bar" title="护甲值（每点减免 4%，最多 80%）">
+        <span class="armor-ico"></span><span id="armor-value">0</span>
+      </div>
+      <div id="hearts"></div>
+      <div id="hunger"></div>
+      <div id="breath"></div>
+    </div>
+    <div id="hotbar"></div>
+    <div id="debug"></div>
+    <div id="save-indicator"></div>
+    <div id="hint-bar"></div>
+    <div id="night-hint"></div>
+  </div>
+
+  <div id="toast-wrap"></div>
+  <div id="ach-toast"></div>
+  <div id="cursor-stack" class="hidden"></div>
+
+  <!-- 全屏界面 -->
+  <div id="screens">
+    <div id="screen-loading" class="screen hidden">
+      <div class="loading-box">
+        <div class="loading-title">正在生成世界…</div>
+        <div class="loading-bar"><i></i></div>
+        <div class="loading-tip">地形、矿脉与洞穴都是按种子确定性生成的</div>
+      </div>
+    </div>
+
+    <div id="screen-menu" class="screen"></div>
+    <div id="screen-newworld" class="screen hidden"></div>
+    <div id="screen-worlds" class="screen hidden"></div>
+    <div id="screen-settings" class="screen hidden"></div>
+    <div id="screen-pause" class="screen hidden"></div>
+    <div id="screen-death" class="screen hidden"></div>
+
+    <div id="panel-inventory" class="panel hidden"></div>
+    <div id="panel-furnace" class="panel hidden"></div>
+    <div id="panel-villager" class="panel hidden"></div>
+    <div id="panel-map" class="panel hidden"></div>
+  </div>
+
+  <div id="boot-error" class="hidden"></div>
+</div>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

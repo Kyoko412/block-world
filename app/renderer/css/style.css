@@ -1,0 +1,488 @@
+/* 方块世界 · 界面样式（不透明灰色面板 + 硬边像素斜面） */
+:root {
+  --panel: #c6c6c6;
+  --panel-light: #dedede;
+  --slot: #8b8b8b;
+  --slot-dark: #373737;
+  --slot-light: #ffffff;
+  --ink: #f2f2f2;
+  --ink-dim: #4c4c4c;
+  --accent: #66855b;
+  --accent-2: #496f91;
+  --danger: #a7473c;
+  --font: "Microsoft YaHei", "微软雅黑", "PingFang SC", "Noto Sans CJK SC", "Source Han Sans CN", sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+body {
+  font-family: var(--font);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  cursor: default;
+}
+#game-root { position: fixed; inset: 0; }
+#game-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; background: #8ac4ff; }
+
+.hidden { display: none !important; }
+.fx { position: absolute; inset: 0; pointer-events: none; }
+
+/* 叠加效果 */
+#vignette { box-shadow: inset 0 0 180px rgba(0, 0, 0, .45); opacity: .55; }
+#water-overlay { background: linear-gradient(180deg, rgba(30, 90, 170, .38), rgba(18, 60, 130, .55)); opacity: 0; transition: opacity .18s; }
+#water-overlay.on { opacity: 1; }
+#damage-overlay { background: radial-gradient(circle at 50% 50%, rgba(180, 0, 0, 0) 40%, rgba(160, 0, 0, .6) 100%); opacity: 0; }
+#damage-overlay.flash { animation: dmgflash .45s ease-out; }
+@keyframes dmgflash { 0% { opacity: .95 } 100% { opacity: 0 } }
+/* T2 盾牌成功格挡：冷白色边缘一闪（与受伤的红色明确区分，不挡准星中心） */
+#block-overlay { background: radial-gradient(circle at 50% 50%, rgba(190, 225, 255, 0) 46%, rgba(170, 210, 255, .55) 100%); opacity: 0; }
+#block-overlay.flash { animation: blockflash .28s ease-out; }
+@keyframes blockflash { 0% { opacity: .85 } 100% { opacity: 0 } }
+/* 滚动任务 7：雷暴闪电的全屏冷白闪（两次抖光，不像受伤那样红） */
+#lightning-flash { background: #eaf4ff; opacity: 0; }
+#lightning-flash.flash { animation: lightningflash .32s ease-out; }
+@keyframes lightningflash { 0% { opacity: .86 } 18% { opacity: .28 } 32% { opacity: .72 } 100% { opacity: 0 } }
+
+/* HUD */
+#hud { position: absolute; inset: 0; pointer-events: none; }
+#crosshair { position: absolute; left: 50%; top: 50%; width: 22px; height: 22px; transform: translate(-50%, -50%); opacity: .85; }
+#crosshair .ch-h, #crosshair .ch-v { position: absolute; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .45); }
+#crosshair .ch-h { left: 0; top: 10px; width: 22px; height: 2px; }
+#crosshair .ch-v { left: 10px; top: 0; width: 2px; height: 22px; }
+/* P0：低调的攻击恢复提示，准星下方一条细线；满蓄时隐藏，不干扰瞄准 */
+#attack-charge {
+  position: absolute; left: 50%; top: calc(50% + 17px); transform: translateX(-50%);
+  width: 22px; height: 2px; background: rgba(0, 0, 0, .35); pointer-events: none;
+}
+#attack-charge i { display: block; height: 100%; width: 0; background: #e8e0b8; }
+
+/* 滚动任务 8：指南针 HUD（持有时常驻，指向床/出生点） */
+#compass-hud {
+  position: absolute; left: 18px; bottom: 92px; width: 62px; text-align: center;
+  color: #f2f2f2; text-shadow: 1px 1px 0 #222, 0 0 4px #000;
+}
+#compass-ring {
+  position: relative; width: 54px; height: 54px; margin: 0 auto 4px;
+  border: 2px solid #1a1a1a; border-radius: 50%;
+  background: radial-gradient(circle, #d8dde2 0 58%, #8d949b 60% 100%);
+  box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #555, 2px 2px 0 rgba(0,0,0,.35);
+}
+#compass-needle {
+  position: absolute; left: 50%; top: 50%; width: 3px; height: 38px; margin: -19px 0 0 -1.5px;
+  background: linear-gradient(#b23a32 0 50%, #eef2f5 50% 100%);
+  transform-origin: 50% 50%; transform: rotate(0deg);
+  box-shadow: 0 0 0 1px rgba(0,0,0,.35);
+}
+#compass-ring .compass-n { position: absolute; left: 50%; top: 1px; transform: translateX(-50%); font-size: 9px; color: #2b2f33; text-shadow: none; }
+#compass-dist { font-size: 11px; line-height: 1.35; }
+
+/* 滚动任务 8：地图面板 */
+#panel-map { min-width: 360px; }
+.map-canvas { display: block; width: 400px; height: 400px; image-rendering: pixelated; border: 2px solid #151515; background: #0b0b0b; }
+.map-legend { display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: #4c4c4c; }
+/* R3：已发现地点清单 */
+.map-markers { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.map-markers .map-marker {
+  font-size: 11px; color: #3a2e10; background: #f5d24a; border: 2px solid #151515;
+  box-shadow: inset 1px 1px 0 #fff2b0; padding: 1px 6px;
+}
+.map-markers .map-marker.none { background: #d8d8d8; color: #5a5a5a; box-shadow: inset 1px 1px 0 #fff; }
+
+/* E1：创造物品搜索 */
+.creative-search-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.creative-search {
+  flex: 1; min-width: 280px; padding: 7px 9px; font-size: 13px; color: #2f2f2f;
+  background: #e6e6e6; border: 2px solid #151515;
+  box-shadow: inset 2px 2px 0 #8f8f8f, inset -2px -2px 0 #fff;
+  outline: none;
+}
+.creative-search:focus { background: #f4f4f4; box-shadow: inset 2px 2px 0 #8f8f8f, inset -2px -2px 0 #fff, 0 0 0 2px #5f7488; }
+.creative-count { font-size: 12px; color: #4c4c4c; white-space: nowrap; }
+.creative-empty { display: none; padding: 18px 8px; font-size: 13px; color: #555; }
+.creative-empty.on { display: block; }
+
+/* T3 近战/箭矢命中：准星四角的短斜线一闪（不改变准星本身） */
+#hit-marker { position: absolute; left: 50%; top: 50%; width: 26px; height: 26px; transform: translate(-50%, -50%); opacity: 0; }
+#hit-marker i { position: absolute; width: 2px; height: 7px; background: #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, .55); }
+#hit-marker i:nth-child(1) { left: 2px; top: 2px; transform: rotate(-45deg); }
+#hit-marker i:nth-child(2) { right: 2px; top: 2px; transform: rotate(45deg); }
+#hit-marker i:nth-child(3) { left: 2px; bottom: 2px; transform: rotate(45deg); }
+#hit-marker i:nth-child(4) { right: 2px; bottom: 2px; transform: rotate(-45deg); }
+#hit-marker.show { animation: hitmark .2s ease-out; }
+@keyframes hitmark {
+  0% { opacity: 1; transform: translate(-50%, -50%) scale(.75); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); }
+}
+
+/* T3 弓的蓄力条：准星正下方，拉满变红 */
+#bow-charge { position: absolute; left: 50%; top: 50%; width: 52px; height: 6px; transform: translate(-50%, 18px); background: rgba(0, 0, 0, .5); border: 1px solid rgba(255, 255, 255, .35); border-radius: 3px; overflow: hidden; }
+#bow-charge i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #8fd36a, #f2d24a 60%, #e2603f); }
+
+#held-name {
+  position: absolute; left: 50%; bottom: 108px; transform: translateX(-50%);
+  font-size: 15px; text-shadow: 2px 2px 0 #3f3f3f; opacity: 0; transition: opacity .3s;
+  white-space: nowrap;
+}
+#held-name.show { opacity: 1; }
+
+#status-bars { position: absolute; left: 50%; bottom: 92px; transform: translateX(-50%); width: 380px; }
+/* T1 护甲值：贴在血条左侧的紧凑徽标，不改变原有血条/饥饿条布局 */
+#armor-bar {
+  position: absolute; left: -64px; bottom: 1px; display: flex; align-items: center; gap: 4px;
+  height: 18px; padding: 0 4px; font-size: 13px; font-weight: 700;
+  color: #e8f1ff; text-shadow: 1px 1px 0 #000; opacity: 0; transition: opacity .2s;
+  background: rgba(22, 30, 40, .55); border: 1px solid rgba(180, 210, 240, .28);
+}
+#armor-bar.on { opacity: 1; }
+#armor-bar.break { animation: armorbreak .55s ease-out; }
+@keyframes armorbreak {
+  0% { background: rgba(190, 60, 50, .85); transform: translateX(-2px); }
+  40% { background: rgba(240, 210, 190, .8); transform: translateX(2px); }
+  100% { background: rgba(22, 30, 40, .55); transform: none; }
+}
+#armor-bar .armor-ico {
+  width: 12px; height: 14px; background: #cfdff2;
+  clip-path: polygon(50% 0, 100% 18%, 100% 56%, 50% 100%, 0 56%, 0 18%);
+  box-shadow: inset 0 -2px 0 #8fa6bf;
+}
+#hearts, #hunger { display: flex; gap: 1px; }
+#hearts { justify-content: flex-start; }
+#hunger { justify-content: flex-end; margin-top: -18px; }
+.pip { width: 18px; height: 18px; position: relative; }
+.pip svg { width: 100%; height: 100%; display: block; filter: drop-shadow(1px 1px 0 rgba(0,0,0,.5)); }
+
+#breath { display: flex; gap: 2px; justify-content: flex-end; margin-top: 2px; }
+.bubble { width: 9px; height: 9px; border-radius: 50%; background: #cdeeff; box-shadow: inset -1px -1px 0 #7fb3d9; }
+
+/* 快捷栏 */
+#hotbar {
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%);
+  display: flex; gap: 0; padding: 3px; background: rgba(18, 18, 18, .82);
+  border: 2px solid #080808; box-shadow: inset 2px 2px 0 #555, inset -2px -2px 0 #050505;
+}
+.slot {
+  width: 44px; height: 44px; position: relative;
+  background: var(--slot);
+  box-shadow: inset 2px 2px 0 var(--slot-dark), inset -2px -2px 0 var(--slot-light);
+  display: flex; align-items: center; justify-content: center;
+}
+#hotbar .slot { background: rgba(45, 45, 45, .88); box-shadow: inset 2px 2px 0 #161616, inset -2px -2px 0 #777; }
+#hotbar .slot.selected {
+  outline: 3px solid #ffffff; outline-offset: 2px;
+  box-shadow: 0 0 0 2px #151515, inset 2px 2px 0 #161616, inset -2px -2px 0 #777;
+  z-index: 2;
+}
+.slot img.icon { width: 34px; height: 34px; image-rendering: pixelated; pointer-events: none; }
+.slot .count {
+  position: absolute; right: 2px; bottom: 0px; font-size: 15px; line-height: 1;
+  color: #fff; text-shadow: 1px 1px 0 #3f3f3f, -1px 1px 0 #3f3f3f; pointer-events: none;
+  font-weight: 700;
+}
+.slot .dur { position: absolute; left: 3px; right: 3px; bottom: 4px; height: 3px; background: #000; }
+.slot .dur i { display: block; height: 100%; background: #4cd44c; }
+.slot .keyhint { position: absolute; left: 3px; top: 1px; font-size: 10px; color: rgba(255,255,255,.45); }
+
+/* 调试与提示 */
+#debug {
+  position: absolute; left: 8px; top: 8px; font-size: 12.5px; line-height: 1.5;
+  color: #eaeaea; text-shadow: 1px 1px 0 #000; white-space: pre;
+  background: rgba(0, 0, 0, .35); padding: 6px 8px; border-radius: 2px; display: none;
+}
+#debug.on { display: block; }
+#save-indicator {
+  position: absolute; right: 10px; top: 10px; font-size: 12px; color: #d8d8d8;
+  text-shadow: 1px 1px 0 #000; opacity: .85;
+}
+/* 阶段 5：地牢守卫血条。顶部居中，不压准星也不压快捷栏；前摇/硬直在名字右侧读得出。 */
+#guardian-bar {
+  position: absolute; left: 50%; top: 18px; transform: translateX(-50%);
+  width: 300px; max-width: 60vw; text-align: center; pointer-events: none; z-index: 55;
+}
+#guardian-bar.hidden { display: none; }
+.gb-name { font-size: 13px; color: #f2e7c9; text-shadow: 1px 1px 0 #000; margin-bottom: 3px; }
+.gb-name span { color: #e8c65a; font-size: 11px; margin-left: 6px; }
+.gb-track { height: 10px; background: rgba(20, 20, 20, .8); border: 2px solid #080808; box-shadow: inset 1px 1px 0 #555; }
+.gb-track i { display: block; height: 100%; width: 100%; background: linear-gradient(90deg, #b23b3b, #e8c65a); transition: width .18s linear; }
+
+#hint-bar {
+  /* P2：原来 bottom:8px 会在窄窗口压住快捷栏第 9 格（实机审查截图）。
+     抬到快捷栏之上并限制宽度；DOM 结构与文案一字不动，Q1.* 目标提示断言不受影响。 */
+  position: absolute; right: 10px; bottom: 80px; max-width: min(300px, 34vw);
+  font-size: 12px; color: #e6e6e6;
+  text-shadow: 1px 1px 0 #000; opacity: .92; text-align: right; line-height: 1.6;
+  pointer-events: auto;   /* Q1：关闭/重开按钮可点；不挡中心准星 */
+}
+/* 900×500 这类窄窗口再收一档，并把按键说明行让出来（目标行本身保留） */
+@media (max-width: 1000px) {
+  #hint-bar { bottom: 84px; max-width: 235px; }
+  #hint-bar .quest-keys { display: none; }
+}
+/* P2 首夜引导：独立的、可随时不占位的提示层，不进目标链、不入存档 */
+#night-hint {
+  position: absolute; left: 50%; top: 108px; transform: translateX(-50%);
+  max-width: min(520px, 80vw); padding: 6px 12px; font-size: 12px; line-height: 1.5;
+  color: #f2e7c9; text-align: center; text-shadow: 1px 1px 0 #000;
+  background: rgba(18, 18, 18, .62); border: 1px solid rgba(200, 180, 120, .45);
+  pointer-events: none; display: none;
+}
+#night-hint.show { display: block; }
+/* Q1：按进度出现的目标提示（取代开局一次性长文） */
+.quest-line { font-size: 12px; color: #f2e7c9; }
+.quest-line b { color: #e8c65a; margin-right: 4px; }
+.quest-line.done { color: #cfe6c2; }
+.quest-keys { font-size: 11px; opacity: .55; }
+.quest-close, .quest-reopen {
+  margin-top: 3px; padding: 1px 7px; font-size: 12px; line-height: 1.2; cursor: pointer;
+  color: #e6e6e6; background: rgba(20, 20, 20, .7); border: 1px solid #8b8b8b;
+  box-shadow: inset 1px 1px 0 #555;
+}
+.quest-close:hover, .quest-reopen:hover { background: rgba(60, 60, 60, .85); }
+
+#toast-wrap { position: absolute; left: 50%; top: 72px; transform: translateX(-50%); display: flex; flex-direction: column; gap: 6px; align-items: center; pointer-events: none; z-index: 60; }
+
+/* T3 成就 toast：右上角、像素硬边，避开准星与中央普通提示 */
+#ach-toast {
+  position: absolute; right: 14px; top: 38px; z-index: 70; display: none;
+  min-width: 190px; max-width: 260px; padding: 8px 10px;
+  background: #1d1d1d; color: #f2f2f2; border: 2px solid #d9d9d9;
+  box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #000, 4px 4px 0 rgba(0,0,0,.45);
+  pointer-events: none;
+}
+#ach-toast.show { display: flex; gap: 8px; align-items: flex-start; animation: achtin .28s ease-out; }
+#ach-toast .ach-ico {
+  flex: 0 0 18px; width: 18px; height: 18px; margin-top: 1px; background: #e8c65a;
+  clip-path: polygon(50% 0, 63% 30%, 96% 34%, 72% 58%, 80% 92%, 50% 74%, 20% 92%, 28% 58%, 4% 34%, 37% 30%);
+  filter: drop-shadow(1px 1px 0 #5a4310);
+}
+#ach-toast .ach-t { font-size: 11px; letter-spacing: 1px; color: #c9b06a; }
+#ach-toast .ach-n { display: block; font-size: 14px; font-weight: 700; margin-top: 1px; }
+#ach-toast .ach-d { display: block; font-size: 11px; color: #bdbdbd; margin-top: 2px; line-height: 1.4; }
+@keyframes achtin { from { transform: translateX(16px); opacity: 0 } to { transform: none; opacity: 1 } }
+
+/* T3 暂停界面的成就清单 */
+.ach-box { margin-top: 12px; border-top: 2px solid #8b8b8b; padding-top: 8px; }
+.ach-head { font-size: 13px; font-weight: 700; color: #3f3f3f; margin-bottom: 4px; }
+.ach-row { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #777; padding: 2px 0; }
+.ach-row.on { color: #2f4f2c; }
+.ach-row .ach-dot { width: 8px; height: 8px; background: #9a9a9a; box-shadow: inset 1px 1px 0 #d0d0d0; }
+.ach-row.on .ach-dot { background: #6f935f; box-shadow: inset 1px 1px 0 #b6d3a8; }
+.ach-row .ach-name { width: 76px; flex: 0 0 76px; font-weight: 700; }
+.ach-row .ach-desc { color: #666; }
+.ach-row.on .ach-desc { color: #4f644c; }
+/* R3：额外成就（探索者）单独一行，不用 .ach-row，避免混进「8 行点亮」的读数 */
+.ach-extra { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #7a6a3a; padding: 3px 0 0; border-top: 1px dashed #b8a878; margin-top: 4px; }
+.ach-extra.on { color: #6b4f16; }
+.ach-extra .ach-tag { font-size: 10px; padding: 0 4px; border: 1px solid #b8a878; color: #7a6a3a; }
+.ach-extra .ach-name { width: 76px; flex: 0 0 76px; font-weight: 700; }
+.ach-extra .ach-desc { color: #8a7a52; }
+.ach-extra.on .ach-desc { color: #6b4f16; }
+.ach-places { font-size: 11px; color: #4f644c; margin-top: 4px; line-height: 1.5; }
+.toast {
+  background: rgba(0, 0, 0, .72); color: #fff; padding: 7px 14px; font-size: 14px;
+  border: 1px solid rgba(255,255,255,.18); text-shadow: 1px 1px 0 #000;
+  animation: toastin .25s ease-out;
+}
+.toast.bad { background: rgba(120, 20, 20, .82); }
+@keyframes toastin { from { transform: translateY(-8px); opacity: 0 } to { transform: none; opacity: 1 } }
+
+/* 手持物品拖影 */
+#cursor-stack { position: fixed; width: 40px; height: 40px; pointer-events: none; z-index: 200; transform: translate(-50%, -50%); }
+#cursor-stack img { width: 100%; height: 100%; image-rendering: pixelated; }
+#cursor-stack .count { position: absolute; right: -2px; bottom: -4px; font-size: 14px; text-shadow: 1px 1px 0 #000; font-weight: 700; }
+
+/* 全屏界面 */
+.screen {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: rgba(6, 8, 12, .64); z-index: 40;
+}
+.screen.dimless { background: rgba(6, 8, 12, .82); }
+.screen.solid { background: #1b2027 url() center/cover; }
+.card {
+  width: min(860px, 92vw); max-height: 92vh; overflow: auto;
+  color: #3f3f3f; background: var(--panel); border: 3px solid #151515;
+  box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 8px 8px 0 rgba(0,0,0,.38);
+  padding: 22px 26px 24px;
+}
+.card.narrow { width: min(560px, 92vw); }
+.title {
+  text-align: center; font-size: 40px; letter-spacing: 6px; font-weight: 800;
+  color: #fff; text-shadow: 3px 3px 0 #3f3f3f, 5px 5px 0 rgba(0,0,0,.28); margin-bottom: 4px;
+}
+.subtitle { text-align: center; color: var(--ink-dim); font-size: 13px; margin-bottom: 20px; letter-spacing: 2px; }
+h3.sec { font-size: 15px; color: #3f3f3f; margin: 14px 0 8px; letter-spacing: 1px; font-weight: 700; }
+
+.btn {
+  display: block; width: 100%; padding: 11px 14px; margin: 7px 0;
+  font-family: var(--font); font-size: 15px; font-weight: 600; color: #fff;
+  background: #6f6f6f; border: 2px solid #161616; border-radius: 0;
+  box-shadow: inset 2px 2px 0 rgba(255,255,255,.42), inset -2px -2px 0 rgba(0,0,0,.42);
+  cursor: pointer; text-shadow: 2px 2px 0 #303030;
+}
+.btn:hover { background: #8291a2; }
+.btn:active { transform: translate(1px, 1px); box-shadow: inset 2px 2px 0 rgba(0,0,0,.42); }
+.btn.primary { background: #667d5c; }
+.btn.primary:hover { background: #78936b; }
+.btn.danger { background: #965248; }
+.btn.danger:hover { background: #ad6054; }
+.btn.small { width: auto; display: inline-block; padding: 6px 12px; font-size: 13px; margin: 3px; }
+.btn.ghost { background: #6f6f6f; border-color: #161616; }
+.btnrow { display: flex; gap: 10px; }
+.btnrow .btn { flex: 1; }
+
+label.f { display: block; margin: 12px 0 4px; font-size: 13px; color: var(--ink-dim); }
+input[type=text], input[type=number] {
+  width: 100%; padding: 9px 10px; font-family: var(--font); font-size: 14px;
+  background: #101215; color: #fff; border: 2px solid #3a4048; outline: none;
+}
+input[type=text]:focus { border-color: var(--accent-2); }
+.row { display: flex; gap: 12px; }
+.row > * { flex: 1; }
+select {
+  width: 100%; padding: 8px; background: #101215; color: #fff; border: 2px solid #3a4048; font-family: var(--font);
+}
+.slider-row { display: flex; align-items: center; gap: 10px; margin: 9px 0; }
+.slider-row .name { width: 132px; font-size: 13px; color: var(--ink-dim); }
+.slider-row input[type=range] { flex: 1; accent-color: var(--accent); }
+.slider-row .val { width: 64px; text-align: right; font-size: 13px; font-variant-numeric: tabular-nums; }
+.check-row { display: flex; align-items: center; gap: 8px; margin: 7px 0; font-size: 13px; }
+.hint { font-size: 12px; color: #555; line-height: 1.7; }
+.kbd { display: inline-block; min-width: 18px; padding: 0 4px; border: 2px solid #303030; background: #6f6f6f; color: #fff; font-size: 11px; border-radius: 0; text-align: center; box-shadow: inset 1px 1px 0 #aaa; }
+
+/* 存档列表 */
+.world-list { display: flex; flex-direction: column; gap: 8px; max-height: 52vh; overflow: auto; margin: 8px 0; }
+.world-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px;
+  background: #b3b3b3; border: 2px solid #555; box-shadow: inset 2px 2px 0 #ddd, inset -2px -2px 0 #777; cursor: pointer;
+}
+.world-item:hover { background: #c8d2dc; border-color: #496f91; }
+.world-item .meta { flex: 1; min-width: 0; }
+.world-item .nm { font-size: 15px; font-weight: 700; color: #3f3f3f; }
+.world-item .sub { font-size: 12px; color: #555; margin-top: 2px; }
+.badge { font-size: 11px; padding: 2px 7px; border: 2px solid #666; color: #444; background: #d2d2d2; }
+.badge.creative { color: #675200; border-color: #8a7634; }
+.badge.survival { color: #285f35; border-color: #4d7555; }
+
+/* 背包 / 合成面板 */
+.panel {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  color: #3f3f3f; background: var(--panel); border: 3px solid #151515;
+  box-shadow: inset 3px 3px 0 #fff, inset -3px -3px 0 #555, 8px 8px 0 rgba(0,0,0,.42);
+  padding: 16px 18px 18px; z-index: 45;
+}
+.panel .ptitle { font-size: 15px; margin-bottom: 10px; color: #3f3f3f; letter-spacing: 1px; font-weight: 700; text-shadow: 1px 1px 0 #eee; }
+.grid-slots { display: grid; gap: 0; }
+.g2 { grid-template-columns: repeat(2, 44px); }
+.g3 { grid-template-columns: repeat(3, 44px); }
+.g4 { grid-template-columns: repeat(4, 44px); }
+.g9 { grid-template-columns: repeat(9, 44px); }
+/* T1 装备格：空位用灰色文字标出头盔/胸甲/护腿/靴子 */
+#equip-grid { margin-bottom: 2px; }
+.equip-slot { background: #7d7d7d; }
+.equip-slot:empty::after {
+  content: attr(data-label); position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; color: #d6d6d6; text-shadow: 1px 1px 0 #4a4a4a; pointer-events: none;
+}
+.inv-wrap { display: flex; gap: 20px; align-items: flex-start; }
+.craft-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.craft-line { display: flex; align-items: center; gap: 10px; }
+.arrow { width: 34px; height: 20px; background: #6f6f6f; clip-path: polygon(0 40%, 62% 40%, 62% 12%, 100% 50%, 62% 88%, 62% 60%, 0 60%); }
+.arrow.hot { background: var(--accent); }
+.pill { font-size: 12px; color: #4c4c4c; }
+.section-label { font-size: 12px; color: #4c4c4c; margin: 10px 0 6px; }
+.recipe-book { width: 250px; max-height: 320px; overflow: auto; border-left: 2px solid #8b8b8b; padding-left: 12px; background: #bdbdbd; }
+.recipe-item { display: flex; align-items: center; gap: 8px; padding: 5px 6px; cursor: pointer; border: 2px solid transparent; color: #3f3f3f; }
+.recipe-item:hover { background: #d8e0e7; border-color: #6f8395; }
+.recipe-item img { width: 26px; height: 26px; image-rendering: pixelated; }
+.recipe-item .rn { font-size: 13px; }
+.recipe-item.locked { opacity: .45; }
+/* Q1：配方书「下一步建议」——独立 class，不混进 .recipe-item 的计数与查找 */
+.quest-suggestions { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 2px dashed #8b8b8b; }
+/* P2：建议区可折叠，默认展开；折叠只隐藏建议行，#quest-suggestions 节点与 .recipe-item 数量都不变 */
+.quest-suggestions.collapsed .quest-suggestion { display: none; }
+.quest-suggestions-toggle {
+  float: right; margin: 0 0 2px 6px; padding: 1px 8px; font-size: 11px; cursor: pointer;
+  color: #3f3f3f; background: #d8d8d8; border: 2px solid #6f6f6f;
+  box-shadow: inset 1px 1px 0 #fff, inset -1px -1px 0 #8b8b8b;
+}
+.quest-suggestions-toggle:hover { background: #ececec; }
+.quest-suggestion {
+  display: flex; align-items: center; gap: 8px; padding: 5px 6px; cursor: pointer;
+  border: 2px solid transparent; color: #3f3f3f;
+}
+.quest-suggestion:hover { background: #d8e0e7; border-color: #6f8395; }
+.quest-suggestion.current { background: #e6d9a8; border-color: #b0913c; }
+.quest-suggestion.not-ready { opacity: .62; }
+.quest-suggestion img { width: 26px; height: 26px; image-rendering: pixelated; }
+.quest-suggestion .rn { font-size: 13px; flex: 1; }
+.quest-suggestion em { font-size: 10px; font-style: normal; color: #6a5a2a; white-space: nowrap; }
+.tabs { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
+.tab { padding: 5px 12px; font-size: 13px; color: #f2f2f2; background: #6f6f6f; border: 2px solid #242424; box-shadow: inset 1px 1px 0 #aaa, inset -1px -1px 0 #3f3f3f; cursor: pointer; }
+.tab.on { color: #2f2f2f; background: #dedede; border-color: #555; box-shadow: inset 2px 2px 0 #fff, inset -2px -2px 0 #8b8b8b; }
+.panel .hint { color: #555; margin-top: 8px; }
+
+/* 滚动任务 6：村民交易面板 */
+#panel-villager { min-width: 360px; }
+.trade-list { display: flex; flex-direction: column; }
+.trade-row {
+  display: flex; align-items: center; gap: 8px; padding: 8px 4px;
+  border-bottom: 2px solid #a6a6a6;
+}
+.trade-row:last-child { border-bottom: none; }
+.trade-item { display: flex; align-items: center; gap: 5px; min-width: 78px; }
+.trade-item img.icon { width: 26px; height: 26px; image-rendering: pixelated; pointer-events: none; }
+.trade-text { font-size: 12px; color: #3f3f3f; }
+.trade-arrow { color: #555; font-weight: 700; font-size: 15px; }
+.trade-row .btn { margin-left: auto; }
+.trade-have { margin-left: 6px; min-width: 58px; text-align: right; }
+
+/* 熔炉 */
+.furnace-wrap { display: flex; align-items: center; gap: 18px; }
+.furnace-col { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.flame { width: 44px; height: 44px; position: relative; background: #8b8b8b; overflow: hidden; box-shadow: inset 2px 2px 0 #373737, inset -2px -2px 0 #fff; }
+.flame i { position: absolute; left: 4px; right: 4px; bottom: 4px; background: linear-gradient(#ffd84a, #ff7b2e); }
+.tiny { font-size: 11px; color: #4c4c4c; }
+
+.loading-box { text-align: center; width: min(460px, 86vw); }
+.loading-title { font-size: 20px; margin-bottom: 14px; letter-spacing: 2px; }
+.loading-bar { height: 14px; background: #101215; border: 2px solid #3a4048; }
+.loading-bar i { display: block; height: 100%; width: 12%; background: var(--accent); transition: width .2s; }
+.loading-tip { font-size: 12px; color: #93a0aa; margin-top: 10px; }
+
+#screen-death { background: rgba(96, 8, 8, .72); }
+#screen-death .card { color: #f2f2f2; background: #241010; box-shadow: inset 3px 3px 0 #744, inset -3px -3px 0 #080303, 8px 8px 0 rgba(0,0,0,.38); }
+#screen-death .subtitle, #screen-death .hint { color: #e0bcbc; }
+.death-title { font-size: 34px; text-align: center; color: #ffd2d2; letter-spacing: 4px; margin-bottom: 6px; text-shadow: 3px 3px 0 #000; }
+
+::-webkit-scrollbar { width: 12px; height: 12px; }
+::-webkit-scrollbar-track { background: #777; border: 2px solid #3f3f3f; }
+::-webkit-scrollbar-thumb { background: #b3b3b3; border: 2px solid #3f3f3f; box-shadow: inset 1px 1px 0 #eee; }
+
+/* ============ 阶段 C：信息层级（物品用途 tooltip / 熔炼进度 / 目标链高亮） ============
+ * 原则：只在既有灰色像素框架里「加一层」，不换皮、不动任何既有选择器的底色与阴影。
+ * 6.1a 钉死的 rgb(198,198,198) / rgb(139,139,139) / 3px 边框 / inset 阴影一律不碰。 */
+#item-tip {
+  position: fixed; z-index: 210; display: none; box-sizing: border-box;
+  min-width: 148px; max-width: 268px; padding: 7px 9px;
+  background: rgba(18, 18, 18, .95); color: #f2f2f2;
+  border: 2px solid #d9d9d9;
+  box-shadow: inset 2px 2px 0 #4a4a4a, inset -2px -2px 0 #000, 3px 3px 0 rgba(0, 0, 0, .5);
+  pointer-events: none; font-size: 12.5px; line-height: 1.45; text-shadow: 1px 1px 0 #000;
+}
+#item-tip.show { display: block; }
+#item-tip .tname { font-size: 14px; font-weight: 700; color: #fff; }
+#item-tip .tuse { color: #cfe6a8; margin-top: 2px; }
+#item-tip .tline { color: #c4c4c4; }
+#item-tip .tdur { margin-top: 4px; height: 5px; background: #000; border: 1px solid #3a3a3a; }
+#item-tip .tdur i { display: block; height: 100%; background: #4cd44c; }
+
+/* 目标链高亮：只加一圈描边，槽位底色与像素阴影保持 6.1a 的样子 */
+.slot.quest-need { outline: 2px solid var(--accent); outline-offset: -2px; }
+
+/* 熔炼进度：箭头里按真实 progress 填一条。注意 .arrow.hot 会把箭头本身刷成 accent，
+   所以填充必须用更亮的暖色，否则「正在烧」的时候进度反而看不见（实测踩过）。 */
+#furnace-arrow { position: relative; overflow: hidden; }
+#furnace-arrow .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: rgba(255, 255, 255, .78); }
+#furnace-arrow.hot .fill { background: #fff0a6; }
+#furnace-info .fpct { color: #ffe08a; }

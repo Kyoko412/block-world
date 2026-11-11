@@ -1,0 +1,25 @@
+{
+  "engine": "luanti",
+  "engine_version": "5.18.0",
+  "game": "mineclonia",
+  "game_version": "0.124.1",
+  "artifacts": [
+    {
+      "file": "luanti-5.18.0-win64.zip",
+      "url": "https://github.com/luanti-org/luanti/releases/download/5.18.0/luanti-5.18.0-win64.zip",
+      "sha256": "bebce52b58555d8208bf16767d0717788479fef23c35ec8d7bf287774d641835",
+      "bytes": 17634089,
+      "role": "runtime",
+      "top": "luanti-5.18.0-win64"
+    },
+    {
+      "file": "mineclonia-0.124.1.zip",
+      "url": "https://codeberg.org/mineclonia/mineclonia/archive/refs/tags/0.124.1.zip",
+      "sha256": "96cb7ba592d760719797a274feed4bf0426f97ff4cfc015130c93b6e7c36e521",
+      "bytes": 29597823,
+      "role": "game-source",
+      "top": "mineclonia"
+    }
+  ],
+  "note": "下载后必须逐项校验 SHA256；校验不一致直接失败，不使用该包。"
+}

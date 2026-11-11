@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><title>音乐离线渲染</title></head>
+<body>
+<script type="module">
+import { TRACKS, scheduleTrack } from '../renderer/js/audio/music.js';
+import { FILE_TRACKS, fileUrl } from '../renderer/js/core/musicfiles.js';
+
+function encodeWav(samples, sampleRate) {
+  const n = samples.length;
+  const bytes = new Uint8Array(44 + n * 2);
+  const dv = new DataView(bytes.buffer);
+  const str = (off, s) => { for (let i = 0; i < s.length; i++) bytes[off + i] = s.charCodeAt(i); };
+  str(0, 'RIFF');
+  dv.setUint32(4, 36 + n * 2, true);
+  str(8, 'WAVE');
+  str(12, 'fmt ');
+  dv.setUint32(16, 16, true);
+  dv.setUint16(20, 1, true);          // PCM
+  dv.setUint16(22, 1, true);          // mono
+  dv.setUint32(24, sampleRate, true);
+  dv.setUint32(28, sampleRate * 2, true);
+  dv.setUint16(32, 2, true);
+  dv.setUint16(34, 16, true);
+  str(36, 'data');
+  dv.setUint32(40, n * 2, true);
+  let peak = 0;
+  for (let i = 0; i < n; i++) {
+    let v = Math.max(-1, Math.min(1, samples[i]));
+    if (Math.abs(v) > peak) peak = Math.abs(v);
+    dv.setInt16(44 + i * 2, Math.round(v * 32767), true);
+  }
+  // base64（分块，避免 apply 参数过多）
+  let bin = '';
+  const CH = 0x8000;
+  for (let i = 0; i < bytes.length; i += CH) {
+    bin += String.fromCharCode.apply(null, bytes.subarray(i, Math.min(bytes.length, i + CH)));
+  }
+  return { base64: btoa(bin), samples: n, peak: peak };
+}
+
+window.__renderMusicTrack = async function (id) {
+  const track = TRACKS[id];
+  if (!track) throw new Error('unknown track ' + id);
+  const sr = 22050;
+  const frames = Math.ceil(track.loopSeconds * sr);
+  const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const ctx = new Offline(1, frames, sr);
+  const bus = ctx.createGain();
+  bus.gain.value = 0.9;
+  bus.connect(ctx.destination);
+  scheduleTrack(ctx, bus, { id, start: 0, loops: 1, gain: 1 });
+  const buf = await ctx.startRendering();
+  return encodeWav(buf.getChannelData(0), sr);
+};
+
+window.__musicTracks = Object.keys(TRACKS);
+
+/* ============ 阶段 4：外部曲目（改后）取证与渲染 ============ */
+
+const decoded = new Map();      // 一首一首来，渲染完就丢，峰值内存只留一条
+
+function decodeCtx() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  return decodeCtx._c || (decodeCtx._c = new AC());
+}
+
+/* 素材 URL：游戏与 e2e 服务器把 app/renderer 作为根（/media/music/x.ogg 直接对），
+   而本离线渲染页自己挂在 /tests/ 下、服务器根是 app/，所以要补一层 /renderer。 */
+function mediaUrl(entry) {
+  const p = fileUrl(entry);
+  if (!p) return null;
+  return (/^\/tests\//.test(location.pathname) ? '/renderer' : '') + p;
+}
+
+async function getBuffer(id) {
+  if (decoded.has(id)) return decoded.get(id);
+  const entry = FILE_TRACKS[id];
+  if (!entry) throw new Error('no file track for ' + id);
+  const t0 = performance.now();
+  const r = await fetch(mediaUrl(entry));
+  if (!r.ok) throw new Error('HTTP ' + r.status + ' for ' + mediaUrl(entry));
+  const ab = await r.arrayBuffer();
+  /* 字节数必须在 decodeAudioData 之前取：它会把这块 buffer 转移走，之后再读 byteLength 就是 0 */
+  const bytes = ab.byteLength;
+  const mime = r.headers.get('content-type');
+  const fetchMs = performance.now() - t0;
+  const d0 = performance.now();
+  const buf = await new Promise((res, rej) => {
+    let settled = false;
+    const ok = (b) => { if (!settled) { settled = true; res(b); } };
+    const bad = (e) => { if (!settled) { settled = true; rej(e instanceof Error ? e : new Error(String(e))); } };
+    try { const p = decodeCtx().decodeAudioData(ab, ok, bad); if (p && p.then) p.then(ok, bad); } catch (e) { bad(e); }
+  });
+  const decodeMs = performance.now() - d0;
+  decoded.set(id, buf);
+  buf.__load = { fetchMs: +fetchMs.toFixed(1), decodeMs: +decodeMs.toFixed(1), bytes, mime };
+  return buf;
+}
+
+/** 50ms 分帧 RMS + 短促宽频瞬态检测：用来区分「完整曲目」与「带周期性噪声的试听片段」 */
+function analyzeBuffer(buf) {
+  const sr = buf.sampleRate;
+  const chs = [];
+  for (let c = 0; c < buf.numberOfChannels; c++) chs.push(buf.getChannelData(c));
+  const n = buf.length;
+  const frame = Math.max(1, Math.round(sr * 0.05));
+  const nf = Math.ceil(n / frame);
+  const fr = new Float64Array(nf);
+  let sum = 0, peak = 0, nan = 0, clipped = 0;
+  for (let c = 0; c < chs.length; c++) {
+    const d = chs[c];
+    for (let i = 0; i < n; i++) {
+      const v = d[i];
+      if (!Number.isFinite(v)) { nan++; continue; }
+      const a = Math.abs(v);
+      if (a > peak) peak = a;
+      if (a >= 0.999) clipped++;
+    }
+  }
+  for (let f = 0; f < nf; f++) {
+    let s = 0, m = 0;
+    const end = Math.min(n, (f + 1) * frame);
+    for (let c = 0; c < chs.length; c++) {
+      const d = chs[c];
+      for (let i = f * frame; i < end; i++) { const v = d[i]; if (Number.isFinite(v)) { s += v * v; m++; } }
+    }
+    fr[f] = m ? Math.sqrt(s / m) : 0;
+    sum += fr[f] * fr[f];
+  }
+  const rms = Math.sqrt(sum / Math.max(1, nf));
+  const sorted = Array.from(fr).sort((a, b) => a - b);
+  const med = sorted[Math.floor(sorted.length / 2)] || 0;
+  const spikes = [];
+  for (let f = 0; f < nf; f++) {
+    const a = Math.max(0, f - 60), b = Math.min(nf, f + 60);        // ±3 秒窗口
+    const local = Array.from(fr.slice(a, b)).sort((x, y) => x - y);
+    const lm = local[Math.floor(local.length / 2)] || 0;
+    if (fr[f] > 4 * Math.max(lm, 1e-6) && fr[f] > 2 * Math.max(med, 1e-6)) {
+      let w = 1;
+      while (f + w < nf && fr[f + w] > 2 * Math.max(lm, 1e-6)) w++;
+      while (f - w >= 0 && fr[f - w] > 2 * Math.max(lm, 1e-6)) w++;
+      if (w <= 4) spikes.push(+(f * frame / sr).toFixed(2));   // 0.2 秒以内的孤立瞬态
+    }
+  }
+  const gaps = [];
+  for (let i = 1; i < spikes.length; i++) gaps.push(+(spikes[i] - spikes[i - 1]).toFixed(2));
+  const seg = (from, to) => {
+    let s2 = 0, m2 = 0;
+    const a = Math.max(0, Math.round(from * sr)), b = Math.min(n, Math.round(to * sr));
+    for (let c = 0; c < chs.length; c++) {
+      const d = chs[c];
+      for (let i = a; i < b; i++) { const v = d[i]; if (Number.isFinite(v)) { s2 += v * v; m2++; } }
+    }
+    return m2 ? +Math.sqrt(s2 / m2).toFixed(5) : 0;
+  };
+  const dur = n / sr;
+  return {
+    duration: +dur.toFixed(3), sampleRate: sr, channels: buf.numberOfChannels,
+    rms: +rms.toFixed(5), peak: +peak.toFixed(4), nan, clipped, medianFrameRms: +med.toFixed(5),
+    headRms: seg(0, 2), tailRms: seg(Math.max(0, dur - 2), dur),
+    midRms: seg(dur / 2, dur / 2 + 2),
+    spikeCount: spikes.length, spikeTimes: spikes.slice(0, 12), spikeGaps: gaps.slice(0, 12),
+    load: buf.__load || null
+  };
+}
+
+window.__analyzeFileTrack = async function (id) {
+  const buf = await getBuffer(id);
+  return Object.assign({ id, file: FILE_TRACKS[id].file }, analyzeBuffer(buf));
+};
+
+/** 导出前 N 秒的对照样本（单声道 22.05k，够听清音色与响度；完整曲目在 renderer/media/music 里随包） */
+window.__renderFileTrack = async function (id, seconds) {
+  const buf = await getBuffer(id);
+  const entry = FILE_TRACKS[id];
+  const sr = 22050;
+  const want = Math.min(Math.max(1, seconds === undefined ? 60 : seconds), buf.duration);
+  const frames = Math.ceil(want * sr);
+  const Offline = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const ctx = new Offline(1, frames, sr);
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  const g = ctx.createGain();
+  g.gain.value = entry.trim * 0.9;                 // 与合成曲渲染同一档总线增益，A/B 才可比
+  src.connect(g); g.connect(ctx.destination);
+  src.start(0, 0, want);
+  const out = await ctx.startRendering();
+  const stats = analyzeBuffer(out);
+  decoded.delete(id);                              // 释放，避免三首同时驻留
+  return Object.assign(encodeWav(out.getChannelData(0), sr), stats, {
+    id, file: entry.file, gain: +(entry.trim * 0.9).toFixed(5), sampleSeconds: +want.toFixed(3)
+  });
+};
+
+window.__fileTrackIds = Object.keys(FILE_TRACKS);
+</script>
+</body>
+</html>

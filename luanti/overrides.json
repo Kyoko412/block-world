@@ -1,0 +1,6 @@
+[
+  { "source": "src/menu.lua", "target": "src/menu.lua" },
+  { "source": "src/default.conf", "target": "minetest.conf" },
+  { "source": "mods", "target": "mods" },
+  { "source": "assets", "target": "textures/local_classic_ui" }
+]
