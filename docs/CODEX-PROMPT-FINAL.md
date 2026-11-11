@@ -135,10 +135,10 @@
 1. `README.md`
 2. `NOTICE.md`
 3. `docs/HANDOFF-2026-11-11.md` ← 最重要的交接入口
-4. `docs/current/总计划-批次与证据包-2026-11-12.md`
-5. `docs/current/夜班报告-N1.md`
+4. `docs/CODEX-PROMPT-FINAL.md`（本协议）
+5. `docs/HANDOFF-2026-11-11.md`（若未读）
 
-`docs/history/` 仅用于追溯，不作为当前开发指令。
+`docs/current/` 与 `docs/history/` 属**本地私有文档，不入库**；本地存在时可参考，不作为仓库必备材料。
 
 如文件不存在、内容冲突或路径发生变化，明确报告，不自行编造内容。
 
@@ -417,7 +417,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File luanti/scripts/capture-windo
 
 #### 文档修改范围
 
-允许根据任务更新：`README.md`、`NOTICE.md`、`AGENTS.md`、`docs/HANDOFF-2026-11-11.md`、`docs/current/`。
+允许根据任务更新：`README.md`、`NOTICE.md`、`AGENTS.md`、`docs/HANDOFF-2026-11-11.md`、`docs/CODEX-PROMPT-FINAL.md`；`docs/current/` 仅本地维护，不入库。
 
 不得为相同内容重复创建多个概览、架构、功能列表和问题记录。需要新增文档时，先确认现有文档无法承载该信息。
 

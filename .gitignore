@@ -16,6 +16,10 @@ dsh-auto-continue/
 .workbuddy-ai/
 .scratch/
 
+# ---------- 本地文档（不入库，仅本机保存） ----------
+/docs/current/
+/docs/history/
+
 # ---------- 取证/机位脚本的临时存档 ----------
 
 # ---------- 系统 ----------
