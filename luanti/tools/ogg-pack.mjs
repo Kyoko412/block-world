@@ -15,7 +15,7 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace
 const SRC = path.join(ROOT, 'app/renderer/media/sfx');
 const MOD = path.join(ROOT, 'luanti/mods/mc_soundpack');
 const OUT = path.join(MOD, 'sounds');
-const FFMPEG = process.env.FFMPEG || 'E:/MinecraftOffline-external/.tools/ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe';
+const FFMPEG = process.env.FFMPEG || '<外部工具目录>';
 
 /* 组名 → 我们的文件（第一条是主名，其余是 .0/.1/.2 变体） */
 const GROUPS = {

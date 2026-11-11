@@ -12,7 +12,7 @@ const ROOT = path.resolve(path.dirname(new URL(import.meta.url).pathname.replace
 const MOD = path.join(ROOT, 'luanti/mods/mc_mobs');
 const TEX = path.join(MOD, 'textures');
 const SFX = path.join(MOD, 'sounds');
-const FFMPEG = process.env.FFMPEG || 'E:/MinecraftOffline-external/.tools/ffmpeg-master-latest-win64-gpl/bin/ffmpeg.exe';
+const FFMPEG = process.env.FFMPEG || '<外部工具目录>';
 fs.mkdirSync(TEX, { recursive: true });
 fs.mkdirSync(SFX, { recursive: true });
 

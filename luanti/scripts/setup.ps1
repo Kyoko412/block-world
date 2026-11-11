@@ -1,5 +1,5 @@
 ﻿# 从 downloads/ 组装可运行目录，并应用 overrides.json 的映射。
-# 用法： powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup.ps1 -Target "E:\MinecraftOffline\游戏\方块世界-Luanti"
+# 用法： powershell -NoProfile -ExecutionPolicy Bypass -File scripts/setup.ps1 -Target "游戏\方块世界-Luanti"
 param(
   [string]$Root = (Split-Path $PSScriptRoot -Parent),
   [Parameter(Mandatory = $true)][string]$Target

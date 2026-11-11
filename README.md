@@ -44,10 +44,10 @@ artifacts/              本地取证（不入库）
 powershell -NoProfile -ExecutionPolicy Bypass -File luanti/scripts/fetch-deps.ps1
 
 # 2) 从 downloads/ 组装可运行目录
-powershell -NoProfile -ExecutionPolicy Bypass -File luanti/scripts/setup.ps1 -Target "E:\MinecraftOffline\游戏\方块世界-Luanti"
+powershell -NoProfile -ExecutionPolicy Bypass -File luanti/scripts/setup.ps1 -Target "游戏\方块世界-Luanti"
 
 # 3) 冒烟测试（注册表断言）
-bash luanti/scripts/smoke.sh "E:/MinecraftOffline/游戏/方块世界-Luanti"
+bash luanti/scripts/smoke.sh "游戏/方块世界-Luanti"
 ```
 
 `smoke.sh` 会起一个临时世界并断言：节点数 ≥3000、实体数 ≥291、`mc_mobs:bee` 已注册、音效与配乐文件存在。
