@@ -30,8 +30,6 @@ luanti/                 新版的"我们这一层"
 ├─ dependencies.lock.json  Luanti 5.18.0 + Mineclonia 0.124.1（含 SHA256）
 └─ overrides.json       src → 运行时目录的显式映射
 
-docs/current/           当前计划与报告（总计划、夜班报告、缺口对照、迁移评估…）
-docs/history/           历史文档（旧任务书、验收报告、阶段计划）
 游戏/                   本地产物（不入库）：两个可运行版本
 artifacts/              本地取证（不入库）
 ```
@@ -50,13 +48,6 @@ bash luanti/scripts/smoke.sh "游戏/方块世界-Luanti"
 ```
 
 `smoke.sh` 会起一个临时世界并断言：节点数 ≥3000、实体数 ≥291、`mc_mobs:bee` 已注册、音效与配乐文件存在。
-
-## 文档
-
-- 总计划（批次 × 证据包）：[docs/current/总计划-批次与证据包-2026-11-12.md](docs/current/总计划-批次与证据包-2026-11-12.md)
-- 夜班报告：[docs/current/夜班报告-N1.md](docs/current/夜班报告-N1.md)
-- 内容缺口对照：[docs/current/内容缺口对照-2026-11-11.md](docs/current/内容缺口对照-2026-11-11.md)
-- 迁移评估：[docs/current/迁移评估-Luanti-Mineclonia-2026-11-11.md](docs/current/迁移评估-Luanti-Mineclonia-2026-11-11.md)
 
 ## 许可
 

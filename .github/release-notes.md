@@ -30,4 +30,4 @@
 - 游戏 Mineclonia 0.124.1：GPL-3.0-or-later，材质多为 CC BY-SA 4.0（源码见 https://codeberg.org/mineclonia/mineclonia ）
 - 不含任何 Minecraft 原版素材
 
-完整说明见包内 `NOTICE.md` 与 `说明.md`；开发进度见仓库 `docs/current/`。
+使用说明和来源许可见包内 `README-zh.md` 与 `NOTICE.md`。 [问题反馈](https://github.com/Kyoko412/block-world/issues)

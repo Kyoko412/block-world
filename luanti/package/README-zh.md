@@ -9,4 +9,4 @@
 - 存档在 `worlds/方块世界`，退出后可直接备份整个 `worlds` 目录。
 
 这是早期版本：光影与调色尚未调优，生物只补了蜜蜂原型，战斗与进食仍是上游音效。
-问题与进度见仓库 docs/current/。
+[问题反馈](https://github.com/Kyoko412/block-world/issues)
