@@ -31,6 +31,8 @@ bash luanti/scripts/audit.sh "E:/MinecraftOffline/游戏/方块世界-Luanti"
 - 村民交易（11 职业，592 条；先调用 `mcl_enchanting.initialize()` 避免附魔变体误判）
 - 附魔表（39 条，含不兼容项引用检查）
 - 配方实算（1375 条通过，189 条含 group: 跳过）
+- 酿造：26 个药水基底 × 92 种酿造材料，实际调用 `mcl_potions.get_alchemy`，
+  命中 23 组反应，产物必须已注册
 
 ## 还没做（下一步）
 

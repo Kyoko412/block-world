@@ -196,6 +196,33 @@ minetest.register_on_mods_loaded(function()
 		end
 	end
 
+	-- 酿造：以「药水 × 酿造材料」实际调用 get_alchemy，验证产物都真实存在
+	local brew_bases, brew_ingredients, brew_pairs, brew_bad = 0, 0, 0, {}
+	local bases, ings = {}, {}
+	for name, def in pairs(items) do
+		local g = def.groups or {}
+		if g.potion then bases[#bases + 1] = name
+		elseif g.brewitem then ings[#ings + 1] = name end
+	end
+	brew_bases, brew_ingredients = #bases, #ings
+	if mcl_potions and mcl_potions.get_alchemy then
+		for _, base in ipairs(bases) do
+			for _, ing in ipairs(ings) do
+				local ok, res = pcall(mcl_potions.get_alchemy, ing, ItemStack(base))
+				if ok and res and not res:is_empty() then
+					brew_pairs = brew_pairs + 1
+					local out = res:get_name()
+					if not items[out] then
+						push(brew_bad, base .. " + " .. ing .. " -> " .. out, 50)
+					end
+				end
+			end
+		end
+	end
+	line("brew_bases=" .. brew_bases)
+	line("brew_ingredients=" .. brew_ingredients)
+	line("brew_pairs=" .. brew_pairs)
+
 	for name, def in pairs((mcl_enchanting and mcl_enchanting.enchantments) or {}) do
 		ench_entries = ench_entries + 1
 		if not def.name or not def.max_level or def.max_level < 1 then
@@ -214,7 +241,7 @@ minetest.register_on_mods_loaded(function()
 	line("recipes_ok=" .. recipe_ok)
 	line("recipes_group_skipped=" .. group_skipped)
 	line("recipes_bad=" .. #recipe_bad)
-	local verdict = (#recipe_bad == 0 and #node_no_sounds == 0 and #ent_no_tex == 0 and #fish_bad == 0 and #ench_bad == 0) and "PASS" or "CHECK"
+	local verdict = (#recipe_bad == 0 and #node_no_sounds == 0 and #ent_no_tex == 0 and #fish_bad == 0 and #ench_bad == 0 and #brew_bad == 0) and "PASS" or "CHECK"
 	line("# verdict=" .. verdict)
 	line("# 待分诊样本含内部节点（light_*、*_top、*_wall、ignore）与药水/工具类，不等于缺陷")
 
@@ -233,6 +260,7 @@ minetest.register_on_mods_loaded(function()
 	section("fishing_bad", fish_bad)
 	section("trade_bad", trade_bad)
 	section("enchant_bad", ench_bad)
+	section("brew_bad", brew_bad)
 
 	local f = io.open(minetest.get_worldpath() .. "/audit.txt", "w")
 	f:write(table.concat(out, "\n") .. "\n")
