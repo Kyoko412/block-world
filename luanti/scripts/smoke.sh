@@ -2,13 +2,16 @@
 # 冒烟测试：临时世界 + 注册表断言。用法： bash luanti/scripts/smoke.sh <目标目录>
 set -u
 TARGET="${1:?用法: smoke.sh <目标目录>}"
-WORLD="$TARGET/worlds/_smoke"
+TARGET="$(cd -- "$TARGET" && pwd -P)" || exit 2
+WORLD_DIR=".smoke"
+WORLD="$TARGET/$WORLD_DIR"
 PROBE="$WORLD/worldmods/_smoke_probe"
 EXE="$TARGET/bin/luanti.exe"
 
 [ -x "$EXE" ] || [ -f "$EXE" ] || { echo "找不到 luanti.exe"; exit 2; }
-rm -rf "$WORLD"
-mkdir -p "$PROBE"
+[ "$(realpath -m -- "$WORLD")" = "$WORLD" ] || { echo "冒烟目录不在目标运行目录内"; exit 2; }
+rm -rf -- "$WORLD" || exit 2
+mkdir -p "$PROBE" || exit 2
 
 cat > "$PROBE/mod.conf" <<'EOF'
 name = _smoke_probe
@@ -43,7 +46,7 @@ load_mod_mc_mobs = true
 EOF
 
 cd "$TARGET" || exit 2
-timeout 120 ./bin/luanti.exe --server --world "worlds/_smoke" --port 39977 > smoke.log 2>&1
+timeout 120 ./bin/luanti.exe --server --world "$WORLD_DIR" --port 39977 > smoke.log 2>&1
 CODE=$?
 
 RESULT="$WORLD/smoke.txt"

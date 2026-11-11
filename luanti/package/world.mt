@@ -7,3 +7,4 @@ mod_storage_backend = sqlite3
 load_mod_mc_soundpack = true
 load_mod_mc_music = true
 load_mod_mc_mobs = true
+load_mod_mc_creative = true
