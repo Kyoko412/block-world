@@ -16,7 +16,7 @@ The portable build runs offline on 64-bit Windows. On the first load, allow time
 
 - The game defaults to **Simplified Chinese**, with a 1080p configuration and WASD controls.
 - Custom sound sets cover footsteps, digging, breaking, and placing blocks. Three original tracks are selected for daytime, nighttime, and caves.
-- Try the **bee prototype**, with its own texture and sound effects, by entering `/bee` in the in-game chat.
+- The current source build includes **bees** that visit flowers and return to their nests, with animated wings and custom sounds. Use a **Bee Spawn Egg** in Creative mode to try one.
 
 ## Build from source
 
@@ -54,7 +54,7 @@ bash luanti/scripts/smoke.sh "$PWD/游戏/方块世界-Luanti"
 
 ## Project status
 
-Block World CN is in early development, with Minecraft 1.17 as its gameplay reference. Planned work includes lighting presets and color grading, combat and eating audio, and expanded bee behavior.
+Block World CN is in early development, with Minecraft 1.17 as its gameplay reference. Planned work includes lighting presets, color grading, and audio for combat and eating.
 
 When reporting a bug, include the release version, your Windows version, and steps to reproduce it. [GitHub Issues][issues]
 
