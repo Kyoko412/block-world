@@ -9,7 +9,7 @@
 --   bash luanti/scripts/make-l3-world.sh   # 建世界
 --   服务端加 l3_autobuild = true 可无头建图（测试用）
 
-local BASE_Y = 70
+local BASE_Y = 120
 local SIZE = 44
 local MARK = { x = 0, y = BASE_Y + 1, z = 0 }
 
@@ -55,9 +55,13 @@ local function place(pos, name)
 end
 
 local function build()
+	-- 先清空平台上方 5 层，避免平台埋在雪山里
 	for x = -SIZE / 2, SIZE / 2 do
 		for z = -SIZE / 2, SIZE / 2 do
 			place({ x = x, y = BASE_Y, z = z }, "mcl_core:stonebrick")
+			for y = BASE_Y + 1, BASE_Y + 5 do
+				place({ x = x, y = y, z = z }, "air")
+			end
 		end
 	end
 
@@ -103,9 +107,11 @@ minetest.register_on_mods_loaded(function()
 end)
 
 minetest.register_on_joinplayer(function(player)
-	if minetest.get_node(MARK).name == "mcl_core:goldblock" then return end
-	local ok, err = pcall(build)
-	if not ok then log("build failed: " .. tostring(err)); return end
+	if minetest.get_node(MARK).name ~= "mcl_core:goldblock" then
+		local ok, err = pcall(build)
+		if not ok then log("build failed: " .. tostring(err)) return end
+	end
+	-- 每次进入都送到平台上（世界出生点还在地形表面）
 	player:set_pos({ x = 0, y = BASE_Y + 2, z = 0 })
 end)
 
