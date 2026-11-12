@@ -66,15 +66,16 @@ local function build()
 	end
 
 	local placed = 0
-	for id, x, z, label in ipairs(STATIONS) do
-		local color = COLORS[id] or "white"
-		local wool = "mcl_wool:" .. color
-		local ok = place({ x = x, y = BASE_Y + 1, z = z }, "mcl_core:stonebrick")
-		if minetest.registered_nodes[wool] then
-			place({ x = x, y = BASE_Y + 2, z = z }, wool)
-		end
-		if ok then placed = placed + 1 end
+for _, st in ipairs(STATIONS) do
+	local id, x, z = st[1], st[2], st[3]
+	local color = COLORS[id] or "white"
+	local wool = "mcl_wool:" .. color
+	local ok = place({ x = x, y = BASE_Y + 1, z = z }, "mcl_core:stonebrick")
+	if minetest.registered_nodes[wool] then
+		place({ x = x, y = BASE_Y + 2, z = z }, wool)
 	end
+	if ok then placed = placed + 1 end
+end
 
 	-- 水池（站台 7 附近）
 	for x = 0, 4 do
@@ -94,7 +95,7 @@ local function build()
 	pcall(minetest.add_entity, { x = -6, y = BASE_Y + 1, z = 6 }, "mobs_mc:zombie")
 	pcall(minetest.add_entity, { x = -2, y = BASE_Y + 1, z = 6 }, "mobs_mc:skeleton")
 
-	log(("platform built stations=%d"):format(placed))
+	log(("platform built stations=%d placed=%d"):format(placed, placed))
 end
 
 minetest.register_on_mods_loaded(function()
