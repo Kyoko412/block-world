@@ -9,7 +9,7 @@
 --   bash luanti/scripts/make-l3-world.sh   # 建世界
 --   服务端加 l3_autobuild = true 可无头建图（测试用）
 
-local BASE_Y = 120
+local BASE_Y = 180
 local SIZE = 44
 local MARK = { x = 0, y = BASE_Y + 1, z = 0 }
 
@@ -108,12 +108,25 @@ minetest.register_on_mods_loaded(function()
 end)
 
 minetest.register_on_joinplayer(function(player)
+	-- 世界出生点可能在海底/山脚，先加载平台区块，再把玩家反复拉到平台上，
+	-- 持续 6 秒并每 0.5 秒回满血，避免"刚出生就淹死/摔死"。
+	minetest.load_area({ x = -24, y = BASE_Y - 2, z = -24 }, { x = 24, y = BASE_Y + 8, z = 24 })
 	if minetest.get_node(MARK).name ~= "mcl_core:goldblock" then
 		local ok, err = pcall(build)
 		if not ok then log("build failed: " .. tostring(err)) return end
 	end
-	-- 每次进入都送到平台上（世界出生点还在地形表面）
-	player:set_pos({ x = 0, y = BASE_Y + 2, z = 0 })
+	local target = { x = 0, y = BASE_Y + 1, z = 0 }
+	local ticks = 0
+	local function settle()
+		if not player or not player:is_player() then return end
+		ticks = ticks + 1
+		player:set_hp(20)
+		player:set_pos(target)
+		if ticks < 12 then
+			minetest.after(0.5, settle)
+		end
+	end
+	settle()
 end)
 
 minetest.register_chatcommand("l3kit", {
@@ -130,6 +143,12 @@ minetest.register_chatcommand("l3kit", {
 			local left = inv:add_item("main", ItemStack(item))
 			if left and not left:is_empty() then
 				minetest.add_item(player:get_pos(), left)
+			end
+		end
+		if id == 10 then
+			local pos = player:get_pos()
+			for _, mob in ipairs({ "mobs_mc:zombie", "mobs_mc:skeleton" }) do
+				pcall(minetest.add_entity, { x = pos.x + 3, y = pos.y + 1, z = pos.z }, mob)
 			end
 		end
 		return true, ("已发放站台 %d 的道具（%d 件）"):format(id, #kit)
